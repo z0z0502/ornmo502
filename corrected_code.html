@@ -1,0 +1,2693 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة التنظيمات والأعضاء</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #8B0000;
+            --secondary-color: #A52A2A;
+            --accent-color: #8B0000;
+            --text-color: #fff;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --success-color: #4CAF50;
+            --info-color: #2196F3;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1003;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-color);
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        .login-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            color: var(--dark-gray);
+            transition: all 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-btn:hover {
+            background: #6B0000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-footer {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header .date {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .header .settings-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .header .settings-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: rotate(90deg);
+        }
+
+        .header .logout-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .header .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .search-bar input[type="text"] {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            color: var(--dark-gray);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            color: var(--dark-gray);
+            font-size: 1.2rem;
+        }
+
+        .tabs-container {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            background: rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 5px;
+            scrollbar-width: thin;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            margin: 0 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 20px;
+            color: var(--text-color);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 1rem;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .response {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .response h2 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .response h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-right: 4px solid var(--accent-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .user-title {
+            color: var(--accent-color);
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            word-break: break-word;
+        }
+
+        .user-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-color);
+            color: white;
+            min-width: 30px;
+            height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .user-content {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .user-item {
+            margin-bottom: 12px;
+            padding-right: 20px;
+            position: relative;
+            line-height: 1.8;
+            word-break: break-word;
+        }
+
+        .user-item::before {
+            content: "•";
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .user-history {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            margin-top: 15px;
+            padding: 8px;
+            background: rgba(139, 0, 0, 0.1);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border-top: 1px dashed rgba(139, 0, 0, 0.3);
+        }
+
+        .history-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .admin-badge {
+            background: var(--danger-color);
+        }
+
+        .member-badge {
+            background: var(--info-color);
+        }
+
+        .images-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .image-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .image-card img:hover {
+            transform: scale(1.03);
+        }
+
+        .image-title {
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1.1rem;
+            word-break: break-word;
+        }
+
+        .image-description {
+            color: #ccc;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            border: none;
+            color: white;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 120px;
+        }
+
+        .action-btn i {
+            font-size: 1rem;
+        }
+
+        .fullscreen-btn {
+            background-color: var(--info-color);
+        }
+
+        .fullscreen-btn:hover {
+            background-color: #0d8bf2;
+        }
+
+        .download-btn {
+            background-color: var(--accent-color);
+        }
+
+        .download-btn:hover {
+            background-color: #6B0000;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .edit-btn {
+            background-color: var(--warning-color);
+        }
+
+        .edit-btn:hover {
+            background-color: #e68a00;
+        }
+
+        .navigate-btn {
+            background-color: var(--success-color);
+        }
+
+        .navigate-btn:hover {
+            background-color: #3d8b40;
+        }
+
+        .export-btn {
+            background-color: var(--info-color);
+        }
+
+        .import-btn {
+            background-color: var(--success-color);
+        }
+
+        .delete-all-btn {
+            background-color: var(--danger-color);
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .delete-all-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            touch-action: none;
+        }
+
+        .fullscreen-image-container {
+            position: relative;
+            width: 90%;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .fullscreen-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.1s;
+            transform-origin: center center;
+            cursor: grab;
+        }
+
+        .fullscreen-image:active {
+            cursor: grabbing;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            color: white;
+            font-size: 35px;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            z-index: 1001;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: rotate(90deg);
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            gap: 15px;
+            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            border-radius: 30px;
+            z-index: 1001;
+        }
+
+        .zoom-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--danger-color);
+        }
+
+        .notification.warning {
+            background: var(--warning-color);
+        }
+
+        .notification.info {
+            background: var(--info-color);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--primary-color);
+            z-index: 1002;
+            padding: 20px;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .settings-title {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .close-settings {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .settings-group {
+            margin-bottom: 25px;
+        }
+
+        .settings-group-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .settings-label {
+            font-size: 0.95rem;
+        }
+
+        .settings-control {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.3);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .admin-panel {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .admin-panel h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .admin-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .admin-form input,
+        .admin-form select,
+        .admin-form textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .admin-form textarea {
+            grid-column: span 2;
+            min-height: 100px;
+        }
+
+        .admin-form button {
+            grid-column: span 2;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #toggleAdminBtn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            z-index: 999;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            margin-left: 15px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .user-header-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .avatar-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        .avatar-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .avatar-modal-img {
+            max-width: 100%;
+            max-height: 80vh;
+            border: 3px solid var(--accent-color);
+            border-radius: 5px;
+        }
+
+        .avatar-modal-close {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .admin-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-form textarea,
+            .admin-form button {
+                grid-column: span 1;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+                padding-right: 100px;
+            }
+
+            .response {
+                padding: 15px;
+            }
+
+            .user-card {
+                padding: 15px;
+            }
+
+            .user-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .user-title {
+                margin-bottom: 10px;
+            }
+
+            .user-content {
+                grid-template-columns: 1fr;
+            }
+
+            .image-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .user-avatar {
+                margin-left: 0;
+                margin-bottom: 10px;
+            }
+
+            .section-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .tabs-container {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 5px 0;
+                justify-content: flex-start;
+            }
+            
+            .tab-btn {
+                padding: 10px 15px;
+                min-width: auto;
+                font-size: 0.9rem;
+                margin: 0 3px;
+            }
+        
+            .search-bar input[type="text"] {
+                padding: 12px 40px 12px 15px;
+            }
+        
+            .search-icon {
+                left: auto;
+                right: 15px;
+            }
+
+            .images-section {
+                grid-template-columns: 1fr;
+            }
+        
+            .image-card img {
+                height: 180px;
+            }
+
+            .header .logout-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+                top: 15px;
+                right: 15px;
+            }
+            
+            .header .settings-btn {
+                left: 15px;
+                top: 15px;
+                width: 35px;
+                height: 35px;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+        
+            .settings-panel.open {
+                right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <div class="loading-text">جارٍ التحميل...</div>
+    </div>
+
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <div class="login-logo">
+                <i class="fas fa-landmark"></i>
+            </div>
+            <h1 class="login-title">تسجيل الدخول</h1>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input type="text" id="username" placeholder="أدخل اسم المستخدم" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
+                </div>
+                <button type="submit" class="login-btn">دخول</button>
+            </form>
+            <div class="login-footer">
+                نظام إدارة التنظيمات والأعضاء &copy; 2026 | زيد علي العلي جميع الحقوق محفوظة
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <button class="settings-btn" onclick="toggleSettings()">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+            <h1>نظام إدارة التنظيمات والأعضاء</h1>
+            <div class="date">تاريخ التحديث: <span id="current-date"></span></div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="ابحث في الأعضاء، المسؤولين، الأقسام..." oninput="handleSearchDebounced()">
+            </div>
+        </div>
+
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="search">البحث الشامل</button>
+            <button class="tab-btn" data-tab="members">الأعضاء</button>
+            <button class="tab-btn" data-tab="admins">المسؤولون</button>
+            <button class="tab-btn" data-tab="organizations">التنظيمات</button>
+            <button class="tab-btn" data-tab="departments">الأقسام الإدارية</button>
+            <button class="tab-btn" data-tab="documents">الوثائق والملفات</button>
+            <button class="tab-btn" data-tab="section1">القسم الأول</button>
+            <button class="tab-btn" data-tab="section2">القسم الثاني</button>
+            <button class="tab-btn" data-tab="section3">القسم الثالث</button>
+            <button class="tab-btn" data-tab="section4">القسم الرابع</button>
+            <button class="tab-btn" data-tab="section5">القسم الخامس</button>
+            <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display:none;">لوحة الإدارة</button>
+        </div>
+
+        <div class="tab-content active" id="search-tab">
+            <div class="response" id="responseSection">
+                <h2>نتائج البحث</h2>
+                <div id="searchResults">
+                    <div class="welcome-message">
+                        <h3>مرحباً بكم في نظام إدارة التنظيمات والأعضاء</h3>
+                        <p>يمكنك البحث في:</p>
+                        <ul>
+                            <li>الأعضاء المسجلين</li>
+                            <li>المسؤولون التنظيميون</li>
+                            <li>التنظيمات الإدارية</li>
+                            <li>الأقسام والإدارات</li>
+                            <li>الوثائق والملفات</li>
+                            <li>الأقسام الإضافية</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="members-tab">
+            <div class="search-bar">
+                <input type="text" id="membersSearch" placeholder="ابحث في الأعضاء..." oninput="searchInTabDebounced('members')">
+            </div>
+            
+            <div class="response">
+                <h2>قائمة الأعضاء</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('members')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="membersImportFile" accept=".json" style="display: none;" onchange="importSectionData('members', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('members')" id="deleteAllMembersBtn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع الأعضاء
+                    </button>
+                </div>
+                <div id="membersResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="admins-tab">
+            <div class="search-bar">
+                <input type="text" id="adminsSearch" placeholder="ابحث في المسؤولين..." oninput="searchInTabDebounced('admins')">
+            </div>
+            
+            <div class="response">
+                <h2>قائمة المسؤولين</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('admins')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="adminsImportFile" accept=".json" style="display: none;" onchange="importSectionData('admins', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('admins')" id="deleteAllAdminsBtn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع المسؤولين
+                    </button>
+                </div>
+                <div id="adminsResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="organizations-tab">
+            <div class="search-bar">
+                <input type="text" id="organizationsSearch" placeholder="ابحث في التنظيمات..." oninput="searchInTabDebounced('organizations')">
+            </div>
+            
+            <div class="response">
+                <h2>التنظيمات الإدارية</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('organizations')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="organizationsImportFile" accept=".json" style="display: none;" onchange="importSectionData('organizations', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('organizations')" id="deleteAllOrganizationsBtn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع التنظيمات
+                    </button>
+                </div>
+                <div id="organizationsResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="departments-tab">
+            <div class="search-bar">
+                <input type="text" id="departmentsSearch" placeholder="ابحث في الأقسام..." oninput="searchInTabDebounced('departments')">
+            </div>
+            
+            <div class="response">
+                <h2>الأقسام الإدارية</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('departments')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="departmentsImportFile" accept=".json" style="display: none;" onchange="importSectionData('departments', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('departments')" id="deleteAllDepartmentsBtn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع الأقسام
+                    </button>
+                </div>
+                <div id="departmentsResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="documents-tab">
+            <div class="search-bar">
+                <input type="text" id="documentsSearch" placeholder="ابحث في الوثائق..." oninput="searchInTabDebounced('documents')">
+            </div>
+            
+            <div class="response">
+                <h2>الوثائق والملفات</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('documents')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="documentsImportFile" accept=".json" style="display: none;" onchange="importSectionData('documents', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('documents')" id="deleteAllDocumentsBtn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع الوثائق
+                    </button>
+                </div>
+                <div id="documentsResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="section1-tab">
+            <div class="search-bar">
+                <input type="text" id="section1Search" placeholder="ابحث في القسم الأول..." oninput="searchInTabDebounced('section1')">
+            </div>
+            
+            <div class="response">
+                <h2>القسم الأول</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('section1')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="section1ImportFile" accept=".json" style="display: none;" onchange="importSectionData('section1', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('section1')" id="deleteAllSection1Btn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع العناصر
+                    </button>
+                </div>
+                <div id="section1Results"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="section2-tab">
+            <div class="search-bar">
+                <input type="text" id="section2Search" placeholder="ابحث في القسم الثاني..." oninput="searchInTabDebounced('section2')">
+            </div>
+            
+            <div class="response">
+                <h2>القسم الثاني</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('section2')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="section2ImportFile" accept=".json" style="display: none;" onchange="importSectionData('section2', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('section2')" id="deleteAllSection2Btn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع العناصر
+                    </button>
+                </div>
+                <div id="section2Results"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="section3-tab">
+            <div class="search-bar">
+                <input type="text" id="section3Search" placeholder="ابحث في القسم الثالث..." oninput="searchInTabDebounced('section3')">
+            </div>
+            
+            <div class="response">
+                <h2>القسم الثالث</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('section3')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="section3ImportFile" accept=".json" style="display: none;" onchange="importSectionData('section3', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('section3')" id="deleteAllSection3Btn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع العناصر
+                    </button>
+                </div>
+                <div id="section3Results"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="section4-tab">
+            <div class="search-bar">
+                <input type="text" id="section4Search" placeholder="ابحث في القسم الرابع..." oninput="searchInTabDebounced('section4')">
+            </div>
+            
+            <div class="response">
+                <h2>القسم الرابع</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('section4')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="section4ImportFile" accept=".json" style="display: none;" onchange="importSectionData('section4', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('section4')" id="deleteAllSection4Btn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع العناصر
+                    </button>
+                </div>
+                <div id="section4Results"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="section5-tab">
+            <div class="search-bar">
+                <input type="text" id="section5Search" placeholder="ابحث في القسم الخامس..." oninput="searchInTabDebounced('section5')">
+            </div>
+            
+            <div class="response">
+                <h2>القسم الخامس</h2>
+                <div class="section-actions">
+                    <button class="action-btn export-btn" onclick="exportSectionData('section5')">
+                        <i class="fas fa-file-export"></i> تصدير البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد البيانات
+                        <input type="file" id="section5ImportFile" accept=".json" style="display: none;" onchange="importSectionData('section5', event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color);">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn delete-all-btn" onclick="deleteAllItems('section5')" id="deleteAllSection5Btn" style="display:none;">
+                        <i class="fas fa-trash"></i> حذف جميع العناصر
+                    </button>
+                </div>
+                <div id="section5Results"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="admin-tab">
+            <div class="admin-panel" id="adminPanel">
+                <h3><i class="fas fa-user-shield"></i> لوحة إدارة الأعضاء والمحتوى</h3>
+                
+                <div class="admin-form">
+                    <select id="adminSection">
+                        <option value="members">الأعضاء</option>
+                        <option value="admins">المسؤولون</option>
+                        <option value="organizations">التنظيمات</option>
+                        <option value="departments">الأقسام الإدارية</option>
+                        <option value="documents">الوثائق والملفات</option>
+                        <option value="section1">القسم الأول</option>
+                        <option value="section2">القسم الثاني</option>
+                        <option value="section3">القسم الثالث</option>
+                        <option value="section4">القسم الرابع</option>
+                        <option value="section5">القسم الخامس</option>
+                    </select>
+                    
+                    <input type="text" id="itemName" placeholder="الاسم الكامل">
+                    <input type="text" id="itemUsername" placeholder="اسم المستخدم">
+                    <input type="password" id="itemPassword" placeholder="كلمة المرور">
+                    <input type="text" id="itemPhone" placeholder="رقم الهاتف">
+                    <input type="text" id="itemAge" placeholder="العمر">
+                    <input type="text" id="itemEducation" placeholder="المؤهل العلمي">
+                    <input type="text" id="itemJob" placeholder="الوظيفة">
+                    <input type="text" id="itemUrl" placeholder="رابط إضافي (اختياري)">
+                    <input type="text" id="itemImageUrl" placeholder="رابط الصورة (اختياري)">
+                    <textarea id="itemContent" placeholder="معلومات إضافية"></textarea>
+                    
+                    <button onclick="addNewItem()"><i class="fas fa-plus"></i> إضافة/تعديل عنصر</button>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="action-btn export-btn" onclick="exportData()">
+                        <i class="fas fa-file-export"></i> تصدير جميع البيانات
+                    </button>
+                    <label class="action-btn import-btn" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> استيراد جميع البيانات
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    </label>
+                    <button class="action-btn" onclick="saveAllData()" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> حفظ جميع البيانات
+                    </button>
+                    <button class="action-btn" onclick="loadAllData()" style="background: var(--info-color); margin-right: 10px;">
+                        <i class="fas fa-download"></i> تحميل البيانات
+                    </button>
+                    <button class="action-btn" onclick="resetAllData()" style="background: var(--danger-color); margin-top: 10px;">
+                        <i class="fas fa-trash"></i> مسح جميع البيانات
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button id="toggleAdminBtn">
+            <i class="fas fa-user-shield"></i>
+        </button>
+    </div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay" onclick="closeFullscreen()">
+        <span class="close-btn" onclick="closeFullscreen()">×</span>
+        <div class="fullscreen-image-container" onclick="event.stopPropagation()">
+            <img src="" class="fullscreen-image" id="fullscreenImage">
+            <div class="zoom-controls" onclick="event.stopPropagation()">
+                <button class="zoom-btn" onclick="zoomImage(1.2)"><i class="fas fa-search-plus"></i></button>
+                <button class="zoom-btn" onclick="zoomImage(0.8)"><i class="fas fa-search-minus"></i></button>
+                <button class="zoom-btn" onclick="resetZoom()"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-message"></span>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h2 class="settings-title"><i class="fas fa-cog"></i> الإعدادات</h2>
+            <button class="close-settings" onclick="toggleSettings()">×</button>
+        </div>
+        
+        <div class="settings-group">
+            <h3 class="settings-group-title"><i class="fas fa-palette"></i> المظهر</h3>
+            
+            <div class="settings-option">
+                <span class="settings-label">لون التمييز</span>
+                <select class="settings-control" id="accentColorSelect">
+                    <option value="#8B0000" selected>أحمر داكن</option>
+                    <option value="#5D5CDE">أرجواني</option>
+                    <option value="#4CAF50">أخضر</option>
+                    <option value="#2196F3">أزرق</option>
+                    <option value="#9C27B0">بنفسجي</option>
+                    <option value="#E91E63">وردي</option>
+                    <option value="#00BCD4">تركواز</option>
+                    <option value="#8BC34A">أخضر فاتح</option>
+                    <option value="#FF5722">برتقالي محترق</option>
+                    <option value="#795548">بني</option>
+                    <option value="#607D8B">أزرق رمادي</option>
+                    <option value="#3F51B5">أزرق نيلي</option>
+                </select>
+            </div>
+            
+            <div class="settings-option">
+                <span class="settings-label">حجم الخط</span>
+                <select class="settings-control" id="fontSizeSelect">
+                    <option value="14px">صغير</option>
+                    <option value="16px" selected>متوسط</option>
+                    <option value="18px">كبير</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="settings-group">
+            <h3 class="settings-group-title"><i class="fas fa-search"></i> خيارات البحث</h3>
+            
+            <div class="settings-option">
+                <span class="settings-label">البحث بالتشكيل</span>
+                <label class="switch">
+                    <input type="checkbox" id="tashkeelSearchToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="settings-option">
+                <span class="settings-label">البحث بالمرادفات</span>
+                <label class="switch">
+                    <input type="checkbox" id="synonymsSearchToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="settings-group">
+            <h3 class="settings-group-title"><i class="fas fa-bell"></i> الإشعارات</h3>
+            
+            <div class="settings-option">
+                <span class="settings-label">إشعارات التحديثات</span>
+                <label class="switch">
+                    <input type="checkbox" id="updatesToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <button class="action-btn fullscreen-btn" style="width:100%; margin-top:20px;" onclick="saveSettings()">
+            <i class="fas fa-save"></i> حفظ الإعدادات
+        </button>
+    </div>
+
+    <script>
+        let organizationData = {
+            members: [],
+            admins: [],
+            organizations: [],
+            departments: [],
+            documents: [],
+            section1: [],
+            section2: [],
+            section3: [],
+            section4: [],
+            section5: []
+        };
+
+        const sampleData = {
+            members: [
+                {
+                    id: 1,
+                    name: "زيد علي العلي",
+                    username: "zaid",
+                    password: "502502",
+                    phone: "07701234567",
+                    age: "23",
+                    education: "بكالوريوس علوم حاسوب",
+                    job: "مدير النظام",
+                    content: "مطور النظام ومدير المحتوى",
+                    joinDate: "2022-05-15",
+                    url: "#",
+                    imageUrl: "https://randomuser.me/api/portraits/men/1.jpg"
+                },
+                {
+                    id: 2,
+                    name: "سارة محمد",
+                    username: "sara",
+                    password: "123456",
+                    phone: "07707654321",
+                    age: "28",
+                    education: "ماجستير إدارة أعمال",
+                    job: "مديرة مشاريع",
+                    content: "مسؤولة عن التنسيق بين الفرق",
+                    joinDate: "2021-11-20",
+                    url: "#",
+                    imageUrl: "https://randomuser.me/api/portraits/women/1.jpg"
+                }
+            ],
+            admins: [
+                {
+                    id: 1,
+                    name: "المسؤول الأول",
+                    username: "admin1",
+                    password: "admin123",
+                    phone: "07701112233",
+                    age: "35",
+                    education: "دكتوراه في الإدارة",
+                    job: "مدير عام",
+                    content: "المسؤول عن إدارة النظام كاملاً",
+                    joinDate: "2020-01-10",
+                    url: "#",
+                    imageUrl: "https://randomuser.me/api/portraits/men/2.jpg"
+                }
+            ],
+            organizations: [
+                {
+                    id: 1,
+                    title: "التنظيم المركزي",
+                    content: "التنظيم الرئيسي المسؤول عن التنسيق بين جميع الفروع",
+                    date: "2021-03-15",
+                    type: "تنظيم رئيسي",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=تنظيم"
+                }
+            ],
+            departments: [
+                {
+                    id: 1,
+                    title: "قسم تقنية المعلومات",
+                    content: "مسؤول عن جميع الأنظمة التقنية والشبكات",
+                    date: "2021-06-01",
+                    type: "قسم تقني",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=قسم+IT"
+                }
+            ],
+            documents: [
+                {
+                    id: 1,
+                    title: "دليل المستخدم",
+                    description: "دليل شامل لاستخدام النظام",
+                    url: "#",
+                    downloadUrl: "#",
+                    date: "2022-02-10",
+                    imageUrl: "https://via.placeholder.com/300x200?text=وثيقة"
+                }
+            ],
+            section1: [
+                {
+                    id: 1,
+                    title: "عنصر في القسم الأول",
+                    content: "معلومات عن العنصر في القسم الأول",
+                    date: "2023-01-01",
+                    type: "نوع العنصر",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=قسم1"
+                }
+            ],
+            section2: [
+                {
+                    id: 1,
+                    title: "عنصر في القسم الثاني",
+                    content: "معلومات عن العنصر في القسم الثاني",
+                    date: "2023-01-02",
+                    type: "نوع العنصر",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=قسم2"
+                }
+            ],
+            section3: [
+                {
+                    id: 1,
+                    title: "عنصر في القسم الثالث",
+                    content: "معلومات عن العنصر في القسم الثالث",
+                    date: "2023-01-03",
+                    type: "نوع العنصر",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=قسم3"
+                }
+            ],
+            section4: [
+                {
+                    id: 1,
+                    title: "عنصر في القسم الرابع",
+                    content: "معلومات عن العنصر في القسم الرابع",
+                    date: "2023-01-04",
+                    type: "نوع العنصر",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=قسم4"
+                }
+            ],
+            section5: [
+                {
+                    id: 1,
+                    title: "عنصر في القسم الخامس",
+                    content: "معلومات عن العنصر في القسم الخامس",
+                    date: "2023-01-05",
+                    type: "نوع العنصر",
+                    url: "#",
+                    imageUrl: "https://via.placeholder.com/150?text=قسم5"
+                }
+            ]
+        };
+
+        let currentScale = 1;
+        let isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+        let currentActiveTab = 'search';
+        let isAdminMode = false;
+        let currentUser = null;
+        let userSettings = {
+            accentColor: '#8B0000',
+            fontSize: '16px',
+            tashkeelSearch: false,
+            synonymsSearch: true,
+            notifications: true,
+            autoSave: true
+        };
+
+        const users = {
+            'zaid': {
+                name: 'زيد علي العلي',
+                password: '502502',
+                phone: '07701234567',
+                age: '30',
+                education: 'بكالوريوس علوم حاسوب',
+                job: 'مدير النظام',
+                isAdmin: true,
+                joinDate: '2022-01-15'
+            },
+            'admin': {
+                name: 'المسؤول العام',
+                password: '520520',
+                phone: '07709876543',
+                age: '35',
+                education: 'ماجستير إدارة أعمال',
+                job: 'مدير النظام',
+                isAdmin: true,
+                joinDate: '2021-05-10'
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'flex';
+                initializeLogin();
+                
+                Object.keys(sampleData).forEach(key => {
+                    organizationData[key] = sampleData[key];
+                });
+            }, 1500);
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A' && e.target.getAttribute('href')?.startsWith('go:')) {
+                    e.preventDefault();
+                    const tabName = e.target.getAttribute('href').replace('go:', '');
+                    switchTab(tabName);
+                }
+            });
+        });
+
+        function initializeLogin() {
+            const loginForm = document.getElementById('loginForm');
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if(!username || !password) {
+                showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
+                return;
+            }
+            
+            if(users[username] && users[username].password === password) {
+                currentUser = {
+                    username,
+                    ...users[username]
+                };
+                
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                initializeApp();
+                
+                const welcomeMsg = currentUser.isAdmin 
+                    ? `مرحباً بك ${currentUser.name}` 
+                    : `مرحباً بك ${currentUser.name} في نظام إدارة التنظيمات`;
+                showNotification(welcomeMsg, 'info');
+            } else {
+                showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
+            }
+        }
+
+        function logout() {
+            if(confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                currentUser = null;
+                document.getElementById('mainContainer').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        function initializeApp() {
+    setCurrentDate();
+    setupEventListeners();
+    loadSettings();
+    loadAllData();
+    
+    // تغيير الشرط ليتحقق من اسم المستخدم بالإضافة إلى isAdmin
+    if(currentUser && currentUser.isAdmin) {
+        document.getElementById('toggleAdminBtn').style.display = 'flex';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('adminTabBtn').style.display = 'block';
+        
+        document.querySelectorAll('.delete-all-btn').forEach(btn => {
+            btn.style.display = 'block';
+        });
+    } else {
+        document.getElementById('toggleAdminBtn').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('adminTabBtn').style.display = 'none';
+        
+        document.querySelectorAll('.delete-all-btn').forEach(btn => {
+            btn.style.display = 'none';
+        });
+    }
+    
+    window.addEventListener('beforeunload', function(e) {
+        if(userSettings.autoSave) {
+            saveAllData();
+        }
+    });
+    
+    if(window.location.hash.startsWith('#go:')) {
+        const tabName = window.location.hash.replace('#go:', '');
+        switchTab(tabName, false);
+    }
+}
+
+        function setCurrentDate() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = 
+                new Intl.DateTimeFormat('ar-IQ', options).format(today);
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+            
+            document.getElementById('toggleAdminBtn').addEventListener('click', toggleAdminMode);
+        }
+
+        function switchTab(tabName, updateHash = true) {
+            if(!tabName) return;
+            
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+                currentActiveTab = tabName;
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+                
+                if (updateHash) {
+                    window.location.hash = `go:${tabName}`;
+                }
+                
+                loadTabContent(currentActiveTab);
+            }
+        }
+
+        function loadTabContent(tabName) {
+            searchInTab(tabName);
+        }
+
+        function searchInTab(tabName) {
+            const query = document.getElementById(`${tabName}Search`)?.value.trim().toLowerCase() || '';
+            const resultsContainer = document.getElementById(`${tabName}Results`);
+            
+            if (!resultsContainer) return;
+            
+            const results = getTabResults(tabName, query);
+            const html = renderTabResults(tabName, results);
+            resultsContainer.innerHTML = html;
+        }
+
+        function getTabResults(tabName, query) {
+            let data = organizationData[tabName] || [];
+            
+            if (!query) return data;
+            
+            return data.filter(item => {
+                const searchFields = Object.values(item).join(' ').toLowerCase();
+                return searchFields.includes(query);
+            });
+        }
+
+        function renderTabResults(tabName, results) {
+            if (results.length === 0) return '<p>لا توجد عناصر في هذا القسم بعد. يمكنك إضافة عناصر جديدة من لوحة الإدارة.</p>';
+            
+            if(tabName === 'members' || tabName === 'admins') {
+                return results.map(user => `
+                    <div class="user-card" data-id="${user.id}">
+                        <div class="user-header">
+                            <div class="user-header-content">
+                                ${user.imageUrl ? `<img src="${user.imageUrl}" class="user-avatar" alt="${user.name}" onclick="openUserImage('${user.imageUrl}', '${user.name}')">` : ''}
+                                <span class="user-title">${user.name}</span>
+                            </div>
+                            <span class="user-number">${user.id}</span>
+                        </div>
+                        <div class="user-content">
+                            <div class="user-item">
+                                <strong>اسم المستخدم:</strong> ${user.username}
+                            </div>
+                            <div class="user-item">
+                                <strong>رقم الهاتف:</strong> ${user.phone}
+                            </div>
+                            <div class="user-item">
+                                <strong>العمر:</strong> ${user.age}
+                            </div>
+                            <div class="user-item">
+                                <strong>المؤهل العلمي:</strong> ${user.education}
+                            </div>
+                            <div class="user-item">
+                                <strong>الوظيفة:</strong> ${user.job}
+                            </div>
+                            ${user.content ? `<div class="user-item"><strong>معلومات إضافية:</strong> ${user.content}</div>` : ''}
+                        </div>
+                        <div class="user-history">
+                            <span>تاريخ التسجيل: ${user.joinDate}</span>
+                            <span class="history-badge ${tabName === 'admins' ? 'admin-badge' : 'member-badge'}">
+                                ${tabName === 'admins' ? 'مسؤول' : 'عضو'}
+                            </span>
+                        </div>
+                        <div class="image-actions" style="margin-top:15px;">
+                            <button class="action-btn fullscreen-btn" onclick="showFullContent('${user.name}', \`<p><strong>اسم المستخدم:</strong> ${user.username}</p><p><strong>رقم الهاتف:</strong> ${user.phone}</p><p><strong>العمر:</strong> ${user.age}</p><p><strong>المؤهل العلمي:</strong> ${user.education}</p><p><strong>الوظيفة:</strong> ${user.job}</p><p><strong>تاريخ التسجيل:</strong> ${user.joinDate}</p>\`)">
+                                <i class="fas fa-info-circle"></i> التفاصيل الكاملة
+                            </button>
+                            ${currentUser?.isAdmin ? `
+                            <button class="action-btn edit-btn" onclick="editItem('${tabName}', ${user.id})">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteItem('${tabName}', ${user.id})">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                            ${user.url ? `
+                            <button class="action-btn navigate-btn" onclick="window.open('${user.url}', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> الانتقال للرابط
+                            </button>
+                            ` : ''}
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            if(tabName === 'documents') {
+                return `<div class="images-section">${
+                    results.map(doc => `
+                        <div class="image-card" data-id="${doc.id}">
+                            <img src="${doc.imageUrl || doc.url || 'https://via.placeholder.com/300x200?text=وثيقة'}" alt="${doc.title}" onclick="openFullscreen('${doc.imageUrl || doc.url || 'https://via.placeholder.com/800x600?text=وثيقة'}')">
+                            <div class="image-title">${doc.title}</div>
+                            <p class="image-description">${doc.description || 'لا يوجد وصف'}</p>
+                            <div class="image-actions">
+                                <button class="action-btn fullscreen-btn" onclick="openFullscreen('${doc.imageUrl || doc.url || 'https://via.placeholder.com/800x600?text=وثيقة'}')">
+                                    <i class="fas fa-expand"></i> عرض كامل
+                                </button>
+                                <button class="action-btn download-btn" onclick="downloadFile('${doc.downloadUrl || doc.url || '#'}', '${doc.title}')">
+                                    <i class="fas fa-download"></i> تنزيل
+                                </button>
+                                ${currentUser?.isAdmin ? `
+                                <button class="action-btn edit-btn" onclick="editItem('${tabName}', ${doc.id})">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteItem('${tabName}', ${doc.id})">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                                ${doc.url ? `
+                                <button class="action-btn navigate-btn" onclick="window.open('${doc.url}', '_blank')">
+                                    <i class="fas fa-external-link-alt"></i> الانتقال للرابط
+                                </button>
+                                ` : ''}
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')
+                }</div>`;
+            }
+            
+            if(['section1', 'section2', 'section3', 'section4', 'section5'].includes(tabName)) {
+                return results.map(item => `
+                    <div class="user-card" data-id="${item.id}">
+                        <div class="user-header">
+                            <div class="user-header-content">
+                                ${item.imageUrl ? `<img src="${item.imageUrl}" class="user-avatar" alt="${item.title || item.name}" onclick="openUserImage('${item.imageUrl}', '${item.title || item.name}')">` : ''}
+                                <span class="user-title">${item.title || item.name}</span>
+                            </div>
+                            <span class="user-number">${item.id}</span>
+                        </div>
+                        <div class="user-content">
+                            <div class="user-item">${item.content}</div>
+                        </div>
+                        <div class="user-history">
+                            <span>تاريخ الإضافة: ${item.date || 'غير محدد'}</span>
+                            ${item.type ? `<span class="history-badge">${item.type}</span>` : ''}
+                        </div>
+                        <div class="image-actions" style="margin-top:15px;">
+                            <button class="action-btn fullscreen-btn" onclick="showFullContent('${item.title || item.name}', \`${item.fullContent || item.content}\`)">
+                                <i class="fas fa-info-circle"></i> التفاصيل
+                            </button>
+                            ${currentUser?.isAdmin ? `
+                            <button class="action-btn edit-btn" onclick="editItem('${tabName}', ${item.id})">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteItem('${tabName}', ${item.id})">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                            ${item.url ? `
+                            <button class="action-btn navigate-btn" onclick="window.open('${item.url}', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> الانتقال للرابط
+                            </button>
+                            ` : ''}
+                            ` : ''}
+                            ${item.fileUrl ? `
+                            <button class="action-btn download-btn" onclick="downloadFile('${item.fileUrl}', '${item.title || item.name}')">
+                                <i class="fas fa-download"></i> تنزيل ${item.fileType || 'الملف'}
+                            </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            return results.map(item => `
+                <div class="user-card" data-id="${item.id}">
+                    <div class="user-header">
+                        <div class="user-header-content">
+                            ${item.imageUrl ? `<img src="${item.imageUrl}" class="user-avatar" alt="${item.title || item.name}" onclick="openUserImage('${item.imageUrl}', '${item.title || item.name}')">` : ''}
+                            <span class="user-title">${item.title || item.name}</span>
+                        </div>
+                        <span class="user-number">${item.id}</span>
+                    </div>
+                    <div class="user-content">
+                        <div class="user-item">${item.content}</div>
+                    </div>
+                    <div class="user-history">
+                        <span>تاريخ الإضافة: ${item.date || 'غير محدد'}</span>
+                        ${item.type ? `<span class="history-badge">${item.type}</span>` : ''}
+                    </div>
+                    <div class="image-actions" style="margin-top:15px;">
+                        <button class="action-btn fullscreen-btn" onclick="showFullContent('${item.title || item.name}', \`${item.fullContent || item.content}\`)">
+                            <i class="fas fa-info-circle"></i> التفاصيل
+                        </button>
+                        ${currentUser?.isAdmin ? `
+                        <button class="action-btn edit-btn" onclick="editItem('${tabName}', ${item.id})">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteItem('${tabName}', ${item.id})">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                        ${item.url ? `
+                        <button class="action-btn navigate-btn" onclick="window.open('${item.url}', '_blank')">
+                            <i class="fas fa-external-link-alt"></i> الانتقال للرابط
+                        </button>
+                        ` : ''}
+                        ` : ''}
+                        ${item.fileUrl ? `
+                        <button class="action-btn download-btn" onclick="downloadFile('${item.fileUrl}', '${item.title || item.name}')">
+                            <i class="fas fa-download"></i> تنزيل ${item.fileType || 'الملف'}
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openUserImage(imageUrl, userName) {
+            const overlay = document.createElement('div');
+            overlay.className = 'avatar-modal';
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'avatar-modal-content';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'avatar-modal-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.onclick = function() {
+                document.body.removeChild(overlay);
+            };
+            
+            const img = document.createElement('img');
+            img.className = 'avatar-modal-img';
+            img.src = imageUrl;
+            img.alt = userName;
+            
+            modalContent.appendChild(closeBtn);
+            modalContent.appendChild(img);
+            overlay.appendChild(modalContent);
+            document.body.appendChild(overlay);
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            });
+        }
+
+        function deleteItem(tabName, id) {
+            if(confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
+                organizationData[tabName] = organizationData[tabName].filter(item => item.id !== id);
+                
+                organizationData[tabName].forEach((item, index) => {
+                    item.id = index + 1;
+                });
+                
+                if(userSettings.autoSave) {
+                    saveAllData();
+                }
+                
+                loadTabContent(tabName);
+                showNotification('تم حذف العنصر بنجاح');
+            }
+        }
+
+        function deleteAllItems(tabName) {
+            if(confirm('هل أنت متأكد من حذف جميع العناصر في هذا القسم؟')) {
+                organizationData[tabName] = [];
+                
+                if(userSettings.autoSave) {
+                    saveAllData();
+                }
+                
+                loadTabContent(tabName);
+                showNotification(`تم حذف جميع العناصر في قسم ${tabName} بنجاح`);
+            }
+        }
+
+        function resetAllData() {
+            if(confirm('هل أنت متأكد من مسح جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+                organizationData = {
+                    members: [],
+                    admins: [],
+                    organizations: [],
+                    departments: [],
+                    documents: [],
+                    section1: [],
+                    section2: [],
+                    section3: [],
+                    section4: [],
+                    section5: []
+                };
+                
+                if(userSettings.autoSave) {
+                    saveAllData();
+                }
+                
+                loadTabContent(currentActiveTab);
+                showNotification('تم مسح جميع البيانات بنجاح', 'warning');
+            }
+        }
+
+        function editItem(tabName, id) {
+            const item = organizationData[tabName].find(item => item.id === id);
+            if (!item) return;
+            
+            const sectionSelect = document.getElementById('adminSection');
+            sectionSelect.value = tabName;
+            
+            document.getElementById('itemName').value = item.name || item.title || '';
+            document.getElementById('itemUsername').value = item.username || '';
+            document.getElementById('itemPassword').value = item.password || '';
+            document.getElementById('itemPhone').value = item.phone || '';
+            document.getElementById('itemAge').value = item.age || '';
+            document.getElementById('itemEducation').value = item.education || '';
+            document.getElementById('itemJob').value = item.job || '';
+            document.getElementById('itemUrl').value = item.url || '';
+            document.getElementById('itemImageUrl').value = item.imageUrl || '';
+            document.getElementById('itemContent').value = item.content || '';
+            
+            switchTab('admin');
+            showNotification('يمكنك الآن تعديل بيانات العنصر', 'info');
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(organizationData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportName = 'organization_data_'+new Date().toISOString().slice(0,10)+'.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportName);
+            linkElement.click();
+            
+            showNotification('تم تصدير جميع البيانات بنجاح');
+        }
+
+        function exportSectionData(section) {
+            const dataStr = JSON.stringify(organizationData[section], null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportName = `${section}_data_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportName);
+            linkElement.click();
+            
+            showNotification(`تم تصدير بيانات ${section} بنجاح`);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.keys(data).forEach(key => {
+                        organizationData[key] = data[key];
+                    });
+                    
+                    Object.keys(organizationData).forEach(section => {
+                        organizationData[section].forEach((item, index) => {
+                            item.id = index + 1;
+                        });
+                    });
+                    
+                    showNotification('تم استيراد جميع البيانات بنجاح');
+                    loadTabContent(currentActiveTab);
+                    
+                    if(userSettings.autoSave) {
+                        saveAllData();
+                    }
+                } catch (error) {
+                    showNotification('ملف غير صالح', 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function importSectionData(section, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    organizationData[section] = data;
+                    
+                    organizationData[section].forEach((item, index) => {
+                        item.id = index + 1;
+                    });
+                    
+                    showNotification(`تم استيراد بيانات ${section} بنجاح`);
+                    loadTabContent(section);
+                    
+                    if(userSettings.autoSave) {
+                        saveAllData();
+                    }
+                } catch (error) {
+                    showNotification('ملف غير صالح', 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function saveAllData() {
+            localStorage.setItem('organizationData', JSON.stringify(organizationData));
+            localStorage.setItem('organizationSettings', JSON.stringify(userSettings));
+            showNotification('تم حفظ جميع البيانات بنجاح');
+        }
+
+        function loadAllData() {
+            const savedData = localStorage.getItem('organizationData');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    Object.keys(parsed).forEach(key => {
+                        organizationData[key] = parsed[key];
+                    });
+                    showNotification('تم تحميل البيانات بنجاح');
+                    loadTabContent(currentActiveTab);
+                } catch (error) {
+                    showNotification('خطأ في تحميل البيانات المحفوظة', 'error');
+                }
+            } else {
+                showNotification('لا توجد بيانات محفوظة', 'info');
+            }
+        }
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('organizationSettings');
+            if (savedSettings) {
+                try {
+                    userSettings = JSON.parse(savedSettings);
+                    applySettings();
+                } catch (error) {
+                    userSettings = {
+                        accentColor: '#8B0000',
+                        fontSize: '16px',
+                        tashkeelSearch: false,
+                        synonymsSearch: true,
+                        notifications: true,
+                        autoSave: true
+                    };
+                    applySettings();
+                }
+            } else {
+                userSettings = {
+                    accentColor: '#8B0000',
+                    fontSize: '16px',
+                    tashkeelSearch: false,
+                    synonymsSearch: true,
+                    notifications: true,
+                    autoSave: true
+                };
+                applySettings();
+            }
+        }
+
+        function applySettings() {
+            document.documentElement.style.setProperty('--accent-color', userSettings.accentColor);
+            document.body.style.fontSize = userSettings.fontSize;
+            
+            document.getElementById('accentColorSelect').value = userSettings.accentColor;
+            document.getElementById('fontSizeSelect').value = userSettings.fontSize;
+            document.getElementById('tashkeelSearchToggle').checked = userSettings.tashkeelSearch;
+            document.getElementById('synonymsSearchToggle').checked = userSettings.synonymsSearch;
+            document.getElementById('updatesToggle').checked = userSettings.notifications;
+        }
+
+        function saveSettings() {
+            userSettings = {
+                accentColor: document.getElementById('accentColorSelect').value,
+                fontSize: document.getElementById('fontSizeSelect').value,
+                tashkeelSearch: document.getElementById('tashkeelSearchToggle').checked,
+                synonymsSearch: document.getElementById('synonymsSearchToggle').checked,
+                notifications: document.getElementById('updatesToggle').checked,
+                autoSave: true
+            };
+            
+            localStorage.setItem('organizationSettings', JSON.stringify(userSettings));
+            applySettings();
+            showNotification('تم حفظ الإعدادات بنجاح');
+            toggleSettings();
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('open');
+        }
+
+        function showNotification(message, type = 'success') {
+            if(!userSettings.notifications && type !== 'error') return;
+            
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            messageElement.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function toggleAdminMode() {
+            isAdminMode = !isAdminMode;
+            
+            if(isAdminMode) {
+                document.getElementById('adminTabBtn').style.display = 'block';
+                document.getElementById('adminPanel').style.display = 'block';
+                switchTab('admin');
+                showNotification('تم تفعيل وضع الإدارة', 'info');
+            } else {
+                document.getElementById('adminTabBtn').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'none';
+                switchTab('search');
+                showNotification('تم تعطيل وضع الإدارة', 'info');
+            }
+            
+            loadTabContent(currentActiveTab);
+        }
+
+        function addNewItem() {
+            const section = document.getElementById('adminSection').value;
+            const name = document.getElementById('itemName').value.trim();
+            const username = document.getElementById('itemUsername').value.trim();
+            const password = document.getElementById('itemPassword').value.trim();
+            const phone = document.getElementById('itemPhone').value.trim();
+            const age = document.getElementById('itemAge').value.trim();
+            const education = document.getElementById('itemEducation').value.trim();
+            const job = document.getElementById('itemJob').value.trim();
+            const url = document.getElementById('itemUrl').value.trim();
+            const imageUrl = document.getElementById('itemImageUrl').value.trim();
+            const content = document.getElementById('itemContent').value.trim();
+            
+            if(!name) {
+                showNotification('الرجاء إدخال الاسم', 'error');
+                return;
+            }
+            
+            const today = new Date();
+            const joinDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            const existingItemIndex = organizationData[section].findIndex(item => 
+                item.username === username || (item.title && item.title === name)
+            );
+            
+            const newItem = {
+                id: existingItemIndex !== -1 ? organizationData[section][existingItemIndex].id : organizationData[section].length + 1,
+                name: name,
+                title: name,
+                username: username || '',
+                password: password || '123456',
+                phone: phone || 'غير محدد',
+                age: age || 'غير محدد',
+                education: education || 'غير محدد',
+                job: job || 'غير محدد',
+                url: url || '',
+                imageUrl: imageUrl || '',
+                content: content || 'لا توجد معلومات إضافية',
+                joinDate: joinDate,
+                date: joinDate,
+                isAdmin: section === 'admins'
+            };
+            
+            if (existingItemIndex !== -1) {
+                organizationData[section][existingItemIndex] = newItem;
+                showNotification('تم تحديث العنصر بنجاح');
+            } else {
+                organizationData[section].push(newItem);
+                showNotification('تمت إضافة العنصر بنجاح');
+            }
+            
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemUsername').value = '';
+            document.getElementById('itemPassword').value = '';
+            document.getElementById('itemPhone').value = '';
+            document.getElementById('itemAge').value = '';
+            document.getElementById('itemEducation').value = '';
+            document.getElementById('itemJob').value = '';
+            document.getElementById('itemUrl').value = '';
+            document.getElementById('itemImageUrl').value = '';
+            document.getElementById('itemContent').value = '';
+            
+            if(userSettings.autoSave) {
+                saveAllData();
+            }
+            
+            if(currentActiveTab === section) {
+                loadTabContent(section);
+            }
+        }
+
+        function showFullContent(title, content) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.9); z-index: 1000;
+                display: flex; justify-content: center; align-items: center;
+                padding: 20px;
+            `;
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                background: var(--primary-color); border-radius: 10px;
+                padding: 25px; width: 100%; max-width: 900px;
+                max-height: 90vh; overflow-y: auto;
+                border: 2px solid var(--accent-color);
+                position: relative; box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.2);">
+                    <div style="color:var(--accent-color); font-size:1.3rem; font-weight:bold;">${title}</div>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:var(--accent-color); color:white; border:none; width:35px; height:35px; border-radius:50%; font-size:1.2rem; font-weight:bold; cursor:pointer;">×</button>
+                </div>
+                <div style="line-height:1.8; margin-bottom:20px;">${content}</div>
+                <button onclick="this.parentElement.parentElement.remove()" style="background:var(--accent-color); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer; margin-top:20px; display:block; margin-left:auto;">إغلاق</button>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+        }
+
+        function openFullscreen(imageUrl) {
+            const overlay = document.getElementById('fullscreenOverlay');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            
+            fullscreenImage.src = imageUrl;
+            fullscreenImage.style.transform = 'translate(0, 0) scale(1)';
+            currentScale = 1;
+            translateX = 0;
+            translateY = 0;
+            overlay.style.display = 'flex';
+            
+            setupImageControls(fullscreenImage);
+        }
+
+        function setupImageControls(image) {
+            image.addEventListener('mousedown', startDrag);
+            image.addEventListener('touchstart', startDrag);
+            document.addEventListener('mousemove', dragImage);
+            document.addEventListener('touchmove', dragImage);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            startX = clientX - translateX;
+            startY = clientY - translateY;
+            e.preventDefault();
+        }
+
+        function dragImage(e) {
+            if (!isDragging) return;
+            
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            
+            translateX = clientX - startX;
+            translateY = clientY - startY;
+            
+            document.getElementById('fullscreenImage').style.transform = 
+                `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        function zoomImage(factor) {
+            currentScale *= factor;
+            if (currentScale < 0.5) currentScale = 0.5;
+            if (currentScale > 5) currentScale = 5;
+            
+            document.getElementById('fullscreenImage').style.transform = 
+                `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            event.stopPropagation();
+        }
+
+        function resetZoom() {
+            currentScale = 1;
+            translateX = 0;
+            translateY = 0;
+            document.getElementById('fullscreenImage').style.transform = 'translate(0, 0) scale(1)';
+            event.stopPropagation();
+        }
+
+        function closeFullscreen() {
+            document.getElementById('fullscreenOverlay').style.display = 'none';
+            
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            fullscreenImage.removeEventListener('mousedown', startDrag);
+            fullscreenImage.removeEventListener('touchstart', startDrag);
+            document.removeEventListener('mousemove', dragImage);
+            document.removeEventListener('touchmove', dragImage);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+        }
+
+        function downloadImage(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename || 'ملف';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showNotification('بدأ تنزيل الملف', 'info');
+        }
+
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename || 'ملف';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showNotification('بدأ تنزيل الملف', 'info');
+        }
+
+        function handleSearchDebounced() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+                searchInTab(currentActiveTab);
+            }, 500);
+        }
+
+        function searchInTabDebounced(tabName) {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+                searchInTab(tabName);
+            }, 500);
+        }
+    </script>
+</body>
+</html>
+
